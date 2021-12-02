@@ -1,30 +1,66 @@
 ---
-title: '111'
-author: "Cecilia Chen"
+title: 'Final Group Project'
+author: "Group 8"
 date: "12/2/2021"
-output: html_document
+output:
+  html_document: 
+    toc: true
+    toc_float: true
+    code_folding: hide 
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
+# Data cleaning and importing
+```{r}
+library(leaflet)
+library(dplyr)
+citi <- read.csv("citicleaned.csv")
+str(citi)
 ```
 
-## Including Plots
+# Data Visulaization
 
-You can also embed plots, for example:
+## Historical patterns
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+### The percentage of trips in each day
+```{r}
+library(ggplot2)
+library(lubridate)
+citi$numWeekday <- wday(citi$starttime, label=TRUE)
+ggplot(citi) + geom_bar(aes(x=numWeekday, y=(..count..)/sum(..count..)), fill="lavender") + theme_bw() + ylab("")
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+This bar chart shows the percentage of trips across the week. The largest percentage of trips are taken on Wednesday and Friday, while there is a lighter use on Saturday and Sunday.
+
+### The number of trips in each hour by speed
+```{r, cache=TRUE}
+library(dplyr)
+library(ggplot2)
+citi %>%
+  group_by(starthour) %>%
+  summarize(count = n(),
+            dist = mean(distmeters, na.rm = TRUE),
+            dur = mean(tripduration, na.rm = TRUE),
+            speed = dist/dur) %>%
+  ggplot(aes(x=starthour, y = count, fill = speed)) + geom_col()
+```
+
+This bar chart shows the number of trips across 24 hours. People mostly ride citi bike during 9 am and 7 pm, which can be explained by rush hours in weekdays. The average speeds from 7 to 9 am are the highest as people hurry to work. The average speeds from 1 to 3 pm are generally lower, indicating people may ride for leisure during afternoon.
+
+### The number of trips in each month by speed
+```{r}
+citi %>%
+  group_by(month) %>%
+  summarize(count = n(),
+            dist = mean(distmeters, na.rm = TRUE),
+            dur = mean(tripduration, na.rm = TRUE),
+            speed = dist/dur) %>%
+  ggplot(aes(x=month, y = count, fill = speed)) + geom_col()
+```
+
+This bar chart shows the number of trips across one year. Most trips happen from July to October, while citi bikes are least used during December to February. The highest average speed occurs in summer, and the lowest in winter. Such pattern can be explained by weather. In summer when the weather is fine and the temperature is favorable, people are more likely to ride citi bikes. In cold winter, people tend to choose other transportation methods than citi bikes. Even when people do ride bikes in winter, the average speed is much lower.
+
