@@ -89,6 +89,26 @@ This bar chart shows the number of trips across 12 months. Most trips happen fro
 
 ## Weather
 ```{r}
+library(lubridate)
+citi$starttime <- as.POSIXct(strptime(citi$starttime, "%Y-%m-%d %H:%M:%S"))
+citi$stoptime <- as.POSIXct(strptime(citi$stoptime, "%Y-%m-%d %H:%M:%S"))
+citi$starthour <- hour(citi$starttime)
+citi$day <- as.Date(citi$starttime)
+citi$month <- as.factor(month(citi$starttime))
+citi$numWeekday <- wday(citi$starttime, label=TRUE)
+citi$dayid <- as.factor(ifelse(citi$numWeekday < 6, "Weekday", "Weekend"))
+citi$weekNum <- as.numeric(strftime(citi$starttime, format = "%V"))
+
+library(geosphere)
+citi$distmeters <- distHaversine(cbind(citi$start.station.latitude, citi$start.station.longitude), cbind(citi$end.station.latitude, citi$end.station.longitude))
+citi$speed <- citi$distmeters / citi$tripduration
+
+weather <- read.csv("NYCWeather2019.csv")
+weather$STATION <- NULL
+weather$NAME <- NULL
+weather$DATE <- as.Date(weather$DATE, format= "%m/%d/%Y")
+weather$TAVG <- (weather$TMAX + weather$TMIN)/2
+
 citiday <- citi %>%
   group_by(day, gender, dayid) %>%
   summarize(count = n(),
@@ -99,16 +119,20 @@ citiday <- citi %>%
 combined_gender <- merge(citiday, weather, by.x = "day", by.y = "DATE")
 combined_citi <- merge(combined_gender, citi, by = "day")
 
-ggplot(combined_citi, aes(x = PRCP, y = count)) + geom_point(size = 2, alpha = 0.5, color = "yellowgreen") + geom_smooth(color = "darkgreen", method = "lm") + facet_wrap(~ usertype)
-```
 
+```
+```{r}
+ggplot(combined_citi, aes(x = PRCP, y = count)) + geom_point(size = 2, alpha = 0.5, color = "yellowgreen") + geom_smooth(color = "darkgreen", method = "lm") + facet_wrap(~ usertype)
+
+```
 Here, we can see that the rain deters most Citi bike users and that there is a slight difference in behavior during rain between customers and subscribers. The data suggests that customers are more resilient to rainy conditions, which may come down wanting the experience before leaving the city as a tourist. In contrast, subscribers may be using bikes for commuting and switch over to alternatives such as the subway or a taxi when the weather is not great. Although, some do continue to use citi bikes , this number drastically decreases as the rain percentile increases for both customers and subscribers.
 
 ```{r}
 ggplot(combined_citi, aes(x = TAVG, y = count)) + geom_col(width = 1, fill = "blue") + geom_smooth(color = "black") + scale_y_log10() + facet_wrap(~ usertype)
 ```
 
-Here, we can see that there are significantly more subscribers than customers. Additionally, the graph suggests that there is a relationship between temperature and citi bike usage, with the majority of rides occurring between 50 and 75 degrees for customers and subscribers. 
+
+Here, we can see that there are significantly more subscribers than customers using citi bikes. Furthermore, there appears to be a relationship between temperature and citi bike usage, with the majority of rides occurring between 20 and 55 degrees fahrenheit for both customers and subscribers.
 
 
 ## Stations
