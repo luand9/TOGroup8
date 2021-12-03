@@ -73,3 +73,45 @@ citi %>%
   ggplot(aes(x=month, y = count, fill = speed)) + geom_col()
 ```
 This bar chart shows the number of trips across 12 months. Most trips happen from July to October, while citi bikes are least used during December to February. The highest average speed occurs in February and November, and the lowest in December. 【? Such pattern can be explained by weather. In summer when the weather is fine and the temperature is favorable, people are more likely to ride citi bikes. In cold winter, people tend to choose other transportation methods than citi bikes.】
+
+## Stations
+
+## Map of deficits in each station
+```{r}
+library(leaflet)
+
+bike_departures <- group_by(citi, station = `start.station.id`, latitude = `start.station.latitude`, longitude = `start.station.longitude`)
+
+departure <- summarise(bike_departures, departure_count = n())
+
+bike_arrivals <- group_by(citi, station = `end.station.id`, latitude = `end.station.latitude`, longitude = `end.station.longitude`)
+arrival <- summarise(bike_arrivals, arrival_count = n())
+
+#merge departure and arrival data into one df
+bike_deficit <- merge(departure, arrival, all = TRUE)
+
+bike_deficit[is.na(bike_deficit)] <- 0
+
+bike_deficit$deficit <- bike_deficit$departure_count - bike_deficit$arrival_count
+
+leaflet(bike_deficit) %>% 
+  addTiles() %>%
+  setView(-74, 40.75, zoom = 11.5) %>%
+  addCircleMarkers(lng = bike_deficit$longitude, lat = bike_deficit$latitude, 
+                   popup = paste(bike_deficit$station, "<br>", ifelse(bike_deficit$deficit>=0, "Bike deficit = ", "Bike surplus = "), 
+                                abs(bike_deficit$deficit)), 
+                   radius = abs(bike_deficit$deficit)/5, color = ifelse(bike_deficit$deficit>0, "red", "green"))
+```
+
+This map shows the deficit/surplus each station has.
+
+```{r}
+summary(bike_deficit)
+```
+
+
+```{r}
+
+ggplot(data=bike_deficit, aes(x=bike_deficit$station, y=bike_deficit$deficit)) + geom_histogram(binwidth = 2.5,colour="grey",fill="lavender") + ggtitle("Histogram of Station Deficits in 2019 in NYC")
+```
+
