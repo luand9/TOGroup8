@@ -111,7 +111,11 @@ summary(bike_deficit)
 
 
 ```{r}
+bike_deficit10percent<-sort(abs(bike_deficit$deficit),decreasing = TRUE)
+minimum<-bike_deficit10percent[length(bike_deficit10percent)%/%90]
 
-ggplot(data=bike_deficit, aes(x=bike_deficit$station, y=bike_deficit$deficit)) + geom_histogram(binwidth = 2.5,colour="grey",fill="lavender") + ggtitle("Histogram of Station Deficits in 2019 in NYC")
+bike_deficit_worststations<-bike_deficit[abs(bike_deficit$deficit)>=minimum,]
+
+ggplot(data=bike_deficit_worststations, aes(x=bike_deficit_worststations$station, y=abs(bike_deficit_worststations$deficit))) + ggtitle("Bar Chart of Station Deficits in 2019 in NYC")
 ```
 
