@@ -1,6 +1,6 @@
 ---
 title: 'Final Group Project'
-author: "Group 88888"
+author: "Group 8"
 date: "12/2/2021"
 output:
   html_document: 
@@ -73,6 +73,32 @@ citi %>%
   ggplot(aes(x=month, y = count, fill = speed)) + geom_col()
 ```
 This bar chart shows the number of trips across 12 months. Most trips happen from July to October, while citi bikes are least used during December to February. The highest average speed occurs in February and November, and the lowest in December. 【? Such pattern can be explained by weather. In summer when the weather is fine and the temperature is favorable, people are more likely to ride citi bikes. In cold winter, people tend to choose other transportation methods than citi bikes.】
+
+## Weather
+```{r}
+weather <- read.csv("NYCWeather2019.csv")
+weather$STATION <- NULL
+weather$NAME <- NULL
+weather$DATE <- as.Date(weather$DATE, format= "%m/%d/%Y")
+weather$TAVG <- (weather$TMAX + weather$TMIN)/2
+
+citiday <- citi %>%
+  group_by(day, gender, dayid) %>%
+  summarize(count = n(),
+            dist = mean(distmeters, na.rm = TRUE),
+            dur = mean(tripduration, na.rm = TRUE),
+            speed = dist/dur)
+
+combined_gender <- merge(citiday, weather, by.x = "day", by.y = "DATE")
+
+combined_citi <- merge(combined_gender, citi, by = "day")
+
+ggplot(combined_citi, aes(x = PRCP, y = count)) + geom_point(size = 2, alpha = 0.5, color = "yellowgreen") + geom_smooth(color = "darkgreen", method = "lm") + facet_wrap(~ usertype)
+
+ggplot(combined_citi, aes(x = TAVG, y = count)) + geom_col(width = 1, fill = "blue") + geom_smooth(color = "black") + scale_y_log10() + facet_wrap(~ usertype)
+
+```
+```
 
 ## Stations
 
