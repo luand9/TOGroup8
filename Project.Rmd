@@ -18,6 +18,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r}
 library(leaflet)
 library(dplyr)
+library(ggplot2)
 citi <- read.csv("citicleaned.csv")
 str(citi)
 ```
@@ -35,6 +36,18 @@ str(weather)
 # Data Visualization
 
 ## Historical patterns
+```{r}
+#Peak Bike Ride Times by Day
+citi %>%
+  ggplot(aes(x= starthour)) + geom_density() + facet_wrap(~dayid) +  theme(axis.text.y=element_blank(),
+        axis.ticks.y=element_blank() ) + ylab(NULL) + xlab(NULL) + ggtitle("Hourly Distribution of Rides by Day")
+```
+```{r}
+citi %>%
+  ggplot(aes(x= starthour)) + geom_density() + facet_wrap(~usertype) +  ggtitle("Hourly Distribution of Rides by Customer Type")
+```
+
+
 
 ### The percentage of trips in each day
 
