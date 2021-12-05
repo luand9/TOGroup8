@@ -134,6 +134,23 @@ ggplot(combined_citi, aes(x = TAVG, y = count)) + geom_col(width = 1, fill = "bl
 
 Here, we can see that there are significantly more subscribers than customers using citi bikes. Furthermore, there appears to be a relationship between temperature and citi bike usage, with the majority of rides occurring between 20 and 55 degrees fahrenheit for both customers and subscribers.
 
+## Bike Usage
+```{r}
+#Count of rides by ID
+bike_ID <- group_by(citi, id = bikeid)
+ID <- summarise(bike_ID, IDcount = n())
+
+```
+
+```{r}
+ggplot(ID, aes(x=IDcount))+ geom_histogram(binwidth = 1) + xlab("Number of Rides Each Bike Takes")
+avgrides <- mean(ID$IDcount)
+```
+```{r}
+ggplot(citi, aes(x=distmeters))+ geom_histogram(binwidth = 1) + xlab("Distance Traveled in Meters") + ylim(0,250)
+
+avgdist <- mean(citi$distmeters)
+```
 
 ## Stations
 
